@@ -100,8 +100,8 @@ const generateCategoricalChart = ({
       const { children, defaultShowTooltip } = props;
       const brushItem = findChildByType(children, Brush);
       const startIndex = (brushItem && brushItem.props && brushItem.props.startIndex) || 0;
-      const endIndex = (brushItem && brushItem.props && brushItem.props.endIndex)
-      || ((props.data && (props.data.length - 1)) || 0);
+      const endIndex = (brushItem && brushItem.props && brushItem.props.endIndex) ||
+      ((props.data && (props.data.length - 1)) || 0);
       return {
         chartX: 0,
         chartY: 0,
@@ -217,6 +217,7 @@ const generateCategoricalChart = ({
         this.triggeredAfterMouseMove.cancel();
       }
     }
+
     /**
    * Get the configuration of all x-axis or y-axis
    * @param  {Object} props          Latest props
@@ -247,6 +248,7 @@ const generateCategoricalChart = ({
 
       return axisMap;
     }
+
     /**
      * Get the configuration of axis by the options of axis instance
      * @param  {Object} props         Latest props
@@ -327,8 +329,8 @@ const generateCategoricalChart = ({
             }
           } else if (isCategorial) {
             domain = _.range(0, len);
-          } else if (stackGroups && stackGroups[axisId] && stackGroups[axisId].hasStack
-            && type === 'number') {
+          } else if (stackGroups && stackGroups[axisId] && stackGroups[axisId].hasStack &&
+            type === 'number') {
             // when stackOffset is 'expand', the domain may be calculated as [0, 1.000000000002]
             domain = stackOffset === 'expand' ? [0, 1] : getDomainOfStackGroups(
               stackGroups[axisId].stackGroups, dataStartIndex, dataEndIndex
@@ -371,6 +373,7 @@ const generateCategoricalChart = ({
       }, {});
       return axisMap;
     }
+
     /**
      * Get the configuration of axis by the options of item,
      * this kind of axis does not display in chart
@@ -456,9 +459,9 @@ const generateCategoricalChart = ({
       if (entry) {
         if (layout === 'horizontal') {
           return { x: entry.coordinate, y: rangeObj.y };
-        } else if (layout === 'vertical') {
+        } if (layout === 'vertical') {
           return { x: rangeObj.x, y: entry.coordinate };
-        } else if (layout === 'centric') {
+        } if (layout === 'centric') {
           const angle = entry.coordinate;
           const { radius } = rangeObj;
 
@@ -481,6 +484,7 @@ const generateCategoricalChart = ({
 
       return originCoordinate;
     }
+
     /**
      * Get the information of mouse in chart, return null when the mouse is not in the chart
      * @param  {Object} event    The event object
@@ -523,6 +527,7 @@ const generateCategoricalChart = ({
 
       return null;
     }
+
     /**
      * Get the content to be displayed in the tooltip
      * @param  {Number} activeIndex    Active index of data
@@ -533,8 +538,8 @@ const generateCategoricalChart = ({
       const { graphicalItems, tooltipAxis } = this.state;
       const displayedData = this.constructor.getDisplayedData(this.props, this.state);
 
-      if (activeIndex < 0 || !graphicalItems || !graphicalItems.length
-        || activeIndex >= displayedData.length) {
+      if (activeIndex < 0 || !graphicalItems || !graphicalItems.length ||
+        activeIndex >= displayedData.length) {
         return null;
       }
 
@@ -690,9 +695,9 @@ const generateCategoricalChart = ({
     static getAxisNameByLayout(layout) {
       if (layout === 'horizontal') {
         return { numericAxisName: 'yAxis', cateAxisName: 'xAxis' };
-      } else if (layout === 'vertical') {
+      } if (layout === 'vertical') {
         return { numericAxisName: 'xAxis', cateAxisName: 'yAxis' };
-      } else if (layout === 'centric') {
+      } if (layout === 'centric') {
         return { numericAxisName: 'radiusAxis', cateAxisName: 'angleAxis' };
       }
 
@@ -749,6 +754,7 @@ const generateCategoricalChart = ({
         ...tooltipEvents,
       };
     }
+
     /**
      * The AxisMaps are expensive to render on large data sets
      * so provide the ability to store them in state and only update them when necessary
@@ -815,6 +821,7 @@ const generateCategoricalChart = ({
         eventCenter.setMaxListeners(eventCenter._maxListeners + 1);
       }
     }
+
     removeListener() {
       eventCenter.removeListener(SYNC_EVENT, this.handleReceiveSyncEvent);
 
@@ -822,6 +829,7 @@ const generateCategoricalChart = ({
         eventCenter.setMaxListeners(eventCenter._maxListeners - 1);
       }
     }
+
     /**
      * Calculate the offset of main part in the svg element
      * @param  {Object} props          Latest props
@@ -950,6 +958,7 @@ const generateCategoricalChart = ({
         });
       }
     };
+
     /**
      * The handler of mouse entering chart
      * @param  {Object} e              Event object
@@ -982,6 +991,7 @@ const generateCategoricalChart = ({
         onMouseMove(nextState, e);
       }
     }
+
     /**
      * The handler of mouse entering a scatter
      * @param {Object} el     The active scatter
@@ -995,6 +1005,7 @@ const generateCategoricalChart = ({
         activeCoordinate: el.tooltipPosition || { x: el.cx, y: el.cy },
       }));
     };
+
     /**
      * The handler of mouse leaving a scatter
      * @return {Object} no return
@@ -1004,6 +1015,7 @@ const generateCategoricalChart = ({
         isTooltipActive: false,
       }));
     };
+
     /**
      * The handler of mouse moving in chart
      * @param  {Object} e        Event object
@@ -1015,6 +1027,7 @@ const generateCategoricalChart = ({
       }
       this.triggeredAfterMouseMove(e);
     }
+
     /**
      * The handler if mouse leaving chart
      * @param {Object} e Event object
@@ -1099,20 +1112,18 @@ const generateCategoricalChart = ({
       }
     }
 
-    verticalCoordinatesGenerator = ({ xAxis, width, height, offset }) =>
-      getCoordinatesOfGrid(CartesianAxis.getTicks({
-        ...CartesianAxis.defaultProps,
-        ...xAxis,
-        ticks: getTicksOfAxis(xAxis, true),
-        viewBox: { x: 0, y: 0, width, height },
-      }), offset.left, offset.left + offset.width);
+    verticalCoordinatesGenerator = ({ xAxis, width, height, offset }) => getCoordinatesOfGrid(CartesianAxis.getTicks({
+      ...CartesianAxis.defaultProps,
+      ...xAxis,
+      ticks: getTicksOfAxis(xAxis, true),
+      viewBox: { x: 0, y: 0, width, height },
+    }), offset.left, offset.left + offset.width);
 
-    horizontalCoordinatesGenerator = ({ yAxis, width, height, offset }) =>
-      getCoordinatesOfGrid(CartesianAxis.getTicks({
-        ...CartesianAxis.defaultProps, ...yAxis,
-        ticks: getTicksOfAxis(yAxis, true),
-        viewBox: { x: 0, y: 0, width, height },
-      }), offset.top, offset.top + offset.height);
+    horizontalCoordinatesGenerator = ({ yAxis, width, height, offset }) => getCoordinatesOfGrid(CartesianAxis.getTicks({
+      ...CartesianAxis.defaultProps, ...yAxis,
+      ticks: getTicksOfAxis(yAxis, true),
+      viewBox: { x: 0, y: 0, width, height },
+    }), offset.top, offset.top + offset.height);
 
     axesTicksGenerator = axis => getTicksOfAxis(axis, true);
 
@@ -1213,6 +1224,7 @@ const generateCategoricalChart = ({
 
       return this.renderAxis(axisObj, element, displayName, index);
     };
+
     /**
      * Draw axis
      * @param {Object} axisOptions The options of axis
@@ -1234,6 +1246,7 @@ const generateCategoricalChart = ({
         />
       );
     }
+
     /**
      * Draw grid
      * @param  {ReactElement} element the grid item
@@ -1277,6 +1290,7 @@ const generateCategoricalChart = ({
         key: element.key || 'polar-grid',
       });
     };
+
     /**
      * Draw legend
      * @return {ReactElement}            The instance of Legend
@@ -1304,6 +1318,7 @@ const generateCategoricalChart = ({
         onBBoxUpdate: this.handleLegendBBoxUpdate,
       });
     }
+
     /**
      * Draw Tooltip
      * @return {ReactElement}  The instance of Tooltip
