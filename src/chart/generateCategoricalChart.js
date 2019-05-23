@@ -1308,7 +1308,7 @@ const generateCategoricalChart = ({
       });
 
       if (!props) { return null; }
-      
+
       const { item, ...otherProps } = props;
 
       return cloneElement(item, {
