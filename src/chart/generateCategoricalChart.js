@@ -1113,14 +1113,18 @@ const generateCategoricalChart = ({
       }
     }
 
-    verticalCoordinatesGenerator = ({ xAxis, width, height, offset }) => getCoordinatesOfGrid(CartesianAxis.getTicks({
+    verticalCoordinatesGenerator = ({
+      xAxis, width, height, offset,
+    }) => getCoordinatesOfGrid(CartesianAxis.getTicks({
       ...CartesianAxis.defaultProps,
       ...xAxis,
       ticks: getTicksOfAxis(xAxis, true),
       viewBox: { x: 0, y: 0, width, height },
     }), offset.left, offset.left + offset.width);
 
-    horizontalCoordinatesGenerator = ({ yAxis, width, height, offset }) => getCoordinatesOfGrid(CartesianAxis.getTicks({
+    horizontalCoordinatesGenerator = ({
+      yAxis, width, height, offset,
+    }) => getCoordinatesOfGrid(CartesianAxis.getTicks({
       ...CartesianAxis.defaultProps, ...yAxis,
       ticks: getTicksOfAxis(yAxis, true),
       viewBox: { x: 0, y: 0, width, height },
