@@ -35,7 +35,7 @@
     "lint": "eslint src",
     "autofix": "eslint src --fix",
     "analyse": "cross-env NODE_ENV=analyse webpack src/index.js -o umd/Recharts.js",
-    "prepare": "yarn run build-for-nutshell"
+    "postinstall": "postinstall-build es6 --script=build-for-nutshell"
   },
   "pre-commit": [],
   "pre-push": [
@@ -62,7 +62,7 @@
     "d3-scale": "^2.1.0",
     "d3-shape": "^1.2.0",
     "lodash": "^4.17.5",
-    "postinstall-build": "^5.0.1",
+    "postinstall-build": "^5.0.3",
     "prop-types": "^15.6.0",
     "react-resize-detector": "^2.3.0",
     "react-smooth": "^1.0.5",
