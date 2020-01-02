@@ -1,7 +1,7 @@
 /**
  * @fileOverview Render a group of bar
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import Animate from 'react-smooth';
@@ -11,15 +11,13 @@ import Layer from '../container/Layer';
 import ErrorBar from './ErrorBar';
 import Cell from '../component/Cell';
 import LabelList from '../component/LabelList';
-import pureRender from '../util/PureRender';
 import { uniqueId, mathSign, interpolateNumber } from '../util/DataUtils';
-import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES,
+import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES, TOOLTIP_TYPES,
   findAllByType, getPresentationAttributes, filterEventsOfChild, isSsr } from '../util/ReactUtils';
 import { getCateCoordinateOfBar, getValueByDataKey, truncateByDomain, getBaseValueOfBar,
   findPositionOfBar } from '../util/ChartUtils';
 
-@pureRender
-class Bar extends Component {
+class Bar extends PureComponent {
 
   static displayName = 'Bar';
 
@@ -38,6 +36,7 @@ class Bar extends Component {
     name: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     dataKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.func]).isRequired,
     legendType: PropTypes.oneOf(LEGEND_TYPES),
+    tooltipType: PropTypes.oneOf(TOOLTIP_TYPES),
     minPointSize: PropTypes.number,
     maxBarSize: PropTypes.number,
     hide: PropTypes.bool,
@@ -51,6 +50,7 @@ class Bar extends Component {
       radius: PropTypes.oneOfType([PropTypes.number, PropTypes.array]),
       value: PropTypes.oneOfType([PropTypes.number, PropTypes.string, PropTypes.array]),
     })),
+
     onAnimationStart: PropTypes.func,
     onAnimationEnd: PropTypes.func,
 
@@ -171,6 +171,7 @@ class Bar extends Component {
 
   state = { isAnimationFinished: false };
 
+  // eslint-disable-next-line camelcase
   componentWillReceiveProps(nextProps) {
     const { animationId, data } = this.props;
 
@@ -220,7 +221,7 @@ class Bar extends Component {
         <Layer
           className="recharts-bar-rectangle"
           {...filterEventsOfChild(this.props, entry, i)}
-          key={`rectangle-${i}`}
+          key={`rectangle-${i}`} // eslint-disable-line react/no-array-index-key
         >
           {this.constructor.renderRectangle(shape, props)}
         </Layer>
@@ -327,7 +328,7 @@ class Bar extends Component {
         className: 'recharts-bar-background-rectangle',
       };
 
-      return this.constructor.renderRectangle(background, props);
+      return this.constructor.renderRectangle(this.props.background, props);
     });
   }
 
@@ -351,7 +352,7 @@ class Bar extends Component {
     }
 
     return errorBarItems.map((item, i) => React.cloneElement(item, {
-      key: `error-bar-${i}`,
+      key: `error-bar-${i}`, // eslint-disable-line react/no-array-index-key
       data,
       xAxis,
       yAxis,

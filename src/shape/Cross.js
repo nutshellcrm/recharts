@@ -1,15 +1,13 @@
 /**
  * @fileOverview Cross
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import pureRender from '../util/PureRender';
 import { isNumber } from '../util/DataUtils';
 import { PRESENTATION_ATTRIBUTES, getPresentationAttributes } from '../util/ReactUtils';
 
-@pureRender
-class Cross extends Component {
+class Cross extends PureComponent {
 
   static displayName = 'Cross';
 
@@ -41,8 +39,8 @@ class Cross extends Component {
     const { x, y, width, height, top, left,
       className } = this.props;
 
-    if (!isNumber(x) || !isNumber(y) || !isNumber(width)
-      || !isNumber(height) || !isNumber(top) || !isNumber(left)) {
+    if (!isNumber(x) || !isNumber(y) || !isNumber(width) ||
+      !isNumber(height) || !isNumber(top) || !isNumber(left)) {
       return null;
     }
 

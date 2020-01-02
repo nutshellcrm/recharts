@@ -1,21 +1,37 @@
 /**
  * @fileOverview Tooltip
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { translateStyle } from 'react-smooth';
 import _ from 'lodash';
 import classNames from 'classnames';
 import DefaultTooltipContent from './DefaultTooltipContent';
-import { isSsr } from '../util/ReactUtils';
+import { TOOLTIP_TYPES, isSsr } from '../util/ReactUtils';
 import { isNumber } from '../util/DataUtils';
-import pureRender from '../util/PureRender';
 
 const CLS_PREFIX = 'recharts-tooltip-wrapper';
 
 const EPS = 1;
 
+const defaultUniqBy = entry => entry.dataKey;
+const getUniqPaylod = (option, payload) => {
+  if (option === true) {
+    return _.uniqBy(payload, defaultUniqBy);
+  }
+
+  if (_.isFunction(option)) {
+    return _.uniqBy(payload, option);
+  }
+
+  return payload;
+};
+
 const propTypes = {
+  allowEscapeViewBox: PropTypes.shape({
+    x: PropTypes.boolean,
+    y: PropTypes.boolean,
+  }),
   content: PropTypes.oneOfType([PropTypes.element, PropTypes.func]),
   viewBox: PropTypes.shape({
     x: PropTypes.number,
@@ -32,6 +48,7 @@ const propTypes = {
   itemStyle: PropTypes.object,
   labelStyle: PropTypes.object,
   wrapperStyle: PropTypes.object,
+  contentStyle: PropTypes.object,
   cursor: PropTypes.oneOfType([PropTypes.bool, PropTypes.element, PropTypes.object]),
 
   coordinate: PropTypes.shape({
@@ -48,7 +65,9 @@ const propTypes = {
     name: PropTypes.any,
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string, PropTypes.array]),
     unit: PropTypes.any,
+    type: PropTypes.oneOf(TOOLTIP_TYPES)
   })),
+  paylodUniqBy: PropTypes.oneOfType([PropTypes.func, PropTypes.bool]),
 
   isAnimationActive: PropTypes.bool,
   animationDuration: PropTypes.number,
@@ -66,19 +85,20 @@ const propTypes = {
 
 const defaultProps = {
   active: false,
+  allowEscapeViewBox: { x: false, y: false },
   offset: 10,
   viewBox: { x1: 0, x2: 0, y1: 0, y2: 0 },
   coordinate: { x: 0, y: 0 },
   cursorStyle: {},
   separator: ' : ',
   wrapperStyle: {},
+  contentStyle: {},
   itemStyle: {},
   labelStyle: {},
   cursor: true,
   isAnimationActive: !isSsr(),
   animationEasing: 'ease',
   animationDuration: 400,
-  itemSorter: () => -1,
   filterNull: true,
   useTranslate3d: false,
 };
@@ -86,17 +106,18 @@ const defaultProps = {
 const renderContent = (content, props) => {
   if (React.isValidElement(content)) {
     return React.cloneElement(content, props);
-  } else if (_.isFunction(content)) {
+  } if (_.isFunction(content)) {
     return content(props);
   }
 
   return React.createElement(DefaultTooltipContent, props);
 };
 
-@pureRender
-class Tooltip extends Component {
+class Tooltip extends PureComponent {
   static displayName = 'Tooltip';
+
   static propTypes = propTypes;
+
   static defaultProps = defaultProps;
 
   state = {
@@ -132,13 +153,34 @@ class Tooltip extends Component {
     }
   }
 
+  getTranslate = ({ key, tooltipDimension, viewBoxDimension }) => {
+    const { allowEscapeViewBox, coordinate, offset, position, viewBox } = this.props;
+
+    if (position && isNumber(position[key])) {
+      return position[key];
+    }
+
+    const restricted = coordinate[key] - tooltipDimension - offset;
+    const unrestricted = coordinate[key] + offset;
+    if (allowEscapeViewBox[key]) {
+      return unrestricted;
+    }
+
+    const tooltipBoundary = coordinate[key] + tooltipDimension + offset;
+    const viewBoxBoundary = viewBox[key] + viewBoxDimension;
+    if (tooltipBoundary > viewBoxBoundary) {
+      return Math.max(restricted, viewBox[key]);
+    }
+    return Math.max(unrestricted, viewBox[key]);
+  };
+
   render() {
     const { payload, isAnimationActive, animationDuration, animationEasing,
-      filterNull } = this.props;
-    const finalPayload = filterNull && payload && payload.length ?
-      payload.filter(entry => !_.isNil(entry.value)) : payload;
+      filterNull, paylodUniqBy } = this.props;
+    const finalPayload = getUniqPaylod(paylodUniqBy, filterNull && payload && payload.length ?
+      payload.filter(entry => !_.isNil(entry.value)) : payload);
     const hasPayload = finalPayload && finalPayload.length;
-    const { content, viewBox, coordinate, position, active, offset, wrapperStyle } = this.props;
+    const { content, viewBox, coordinate, position, active, wrapperStyle } = this.props;
     let outerStyle = {
       pointerEvents: 'none',
       visibility: active && hasPayload ? 'visible' : 'hidden',
@@ -155,33 +197,35 @@ class Tooltip extends Component {
       const { boxWidth, boxHeight } = this.state;
 
       if (boxWidth > 0 && boxHeight > 0 && coordinate) {
-        translateX = position && isNumber(position.x) ? position.x : Math.max(
-          coordinate.x + boxWidth + offset > (viewBox.x + viewBox.width) ?
-            coordinate.x - boxWidth - offset :
-            coordinate.x + offset, viewBox.x);
+        translateX = this.getTranslate({
+          key: 'x',
+          tooltipDimension: boxWidth,
+          viewBoxDimension: viewBox.width,
+        });
 
-        translateY = position && isNumber(position.y) ? position.y : Math.max(
-          coordinate.y + boxHeight + offset > (viewBox.y + viewBox.height) ?
-            coordinate.y - boxHeight - offset :
-            coordinate.y + offset, viewBox.y);
+        translateY = this.getTranslate({
+          key: 'y',
+          tooltipDimension: boxHeight,
+          viewBoxDimension: viewBox.height,
+        });
       } else {
         outerStyle.visibility = 'hidden';
       }
     }
 
     outerStyle = {
-      ...outerStyle,
       ...translateStyle({
         transform: this.props.useTranslate3d ? `translate3d(${translateX}px, ${translateY}px, 0)` : `translate(${translateX}px, ${translateY}px)`,
       }),
+      ...outerStyle,
     };
 
     if (isAnimationActive && active) {
       outerStyle = {
-        ...outerStyle,
         ...translateStyle({
           transition: `transform ${animationDuration}ms ${animationEasing}`,
         }),
+        ...outerStyle,
       };
     }
 

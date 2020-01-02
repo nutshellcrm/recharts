@@ -99,8 +99,9 @@ export const rectWithPoints = ({ x: x1, y: y1 }, { x: x2, y: y2 }) => ({
  * @param  {Object} coords     x1, x2, y1, and y2
  * @return {Object} object
  */
-export const rectWithCoords = ({ x1, y1, x2, y2 }) =>
-  rectWithPoints({ x: x1, y: y1 }, { x: x2, y: y2 });
+export const rectWithCoords = ({
+  x1, y1, x2, y2,
+}) => rectWithPoints({ x: x1, y: y1 }, { x: x2, y: y2 });
 
 export class ScaleHelper {
   static EPS = 1e-4;
@@ -133,10 +134,27 @@ export class ScaleHelper {
     return this.scale.bandwidth;
   }
 
-  apply(value, { bandAware } = {}) {
+  apply(value, { bandAware, position } = {}) {
     if (value === undefined) {
       return undefined;
-    } else if (bandAware) {
+    } if (position) {
+      switch (position) {
+        case 'start': {
+          return this.scale(value);
+        }
+        case 'middle': {
+          const offset = this.bandwidth ? this.bandwidth() / 2 : 0;
+          return this.scale(value) + offset;
+        }
+        case 'end': {
+          const offset = this.bandwidth ? this.bandwidth() : 0;
+          return this.scale(value) + offset;
+        }
+        default: {
+          return this.scale(value);
+        }
+      }
+    } if (bandAware) {
       const offset = this.bandwidth ? this.bandwidth() / 2 : 0;
       return this.scale(value) + offset;
     }

@@ -1,17 +1,29 @@
 import React from 'react';
-import { mount, render } from 'enzyme';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { render } from 'enzyme';
+// eslint-disable-next-line import/no-extraneous-dependencies
 import { expect } from 'chai';
-import { Surface, Label } from 'recharts';
+// eslint-disable-next-line import/no-unresolved
+import { Surface, Label, LineChart, Line, ReferenceLine } from 'recharts';
+
+const data = [
+  { name: 'Page A', uv: 400, pv: 2400, amt: 2400 },
+  { name: 'Page B', uv: 300, pv: 4567, amt: 2400 },
+  { name: 'Page C', uv: 300, pv: 1398, amt: 2400 },
+  { name: 'Page D', uv: 200, pv: 9800, amt: 2400 },
+  { name: 'Page E', uv: 278, pv: 3908, amt: 2400 },
+  { name: 'Page F', uv: 189, pv: 4800, amt: 2400 },
+];
 
 describe('<Label />', () => {
-   const polarViewBox = {
-      cx: 50,
-      cy: 50,
-      innerRadius: 20,
-      outerRadius: 80,
-      startAngle: 0,
-      endAngle: 90,
-    };
+  const polarViewBox = {
+    cx: 50,
+    cy: 50,
+    innerRadius: 20,
+    outerRadius: 80,
+    startAngle: 0,
+    endAngle: 90,
+  };
   it('Render polar labels (postion="center")', () => {
     const wrapper = render(
       <Surface>
@@ -92,11 +104,25 @@ describe('<Label />', () => {
   it('Render label when content is a function, and return a simple string.', () => {
     const wrapper = render(
       <Surface>
-        <Label viewBox={cartesianViewBox} value="text" position="center" content={({ value }) => (`${value}%`)}/>
+        <Label viewBox={cartesianViewBox} value="text" position="center" content={({ value }) => (`${value}%`)} />
       </Surface>
     );
-    const label = wrapper.find('.recharts-label');
-    expect(label.length).to.equal(1);
-    expect(label.text()).to.equal('text%');
+      
+    setTimeout(() => {
+      const label = wrapper.find('.recharts-label');
+      expect(label.length).to.equal(1);
+      expect(label.text()).to.equal('text%');
+    }, 1000);
+
+  });
+
+  it('Render label by label = <Label />', () => {
+    const wrapper = render(
+      <LineChart width={400} height={400} data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+        <Line type="monotone" dataKey="uv" stroke="#ff7300" />
+        <ReferenceLine y={200} stroke="red" label={<Label value="Max PV PAGE" />} />
+      </LineChart>
+    );
+    expect(wrapper.find('.recharts-line .recharts-line-curve').length).to.equal(1);
   });
 });

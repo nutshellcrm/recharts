@@ -10,6 +10,7 @@ export Cell from './component/Cell';
 export Text from './component/Text';
 export Label from './component/Label';
 export LabelList from './component/LabelList';
+export Customized from './component/Customized';
 
 export Sector from './shape/Sector';
 export Curve from './shape/Curve';
@@ -51,3 +52,7 @@ export ScatterChart from './chart/ScatterChart';
 export AreaChart from './chart/AreaChart';
 export RadialBarChart from './chart/RadialBarChart';
 export ComposedChart from './chart/ComposedChart';
+
+export Funnel from './numberAxis/Funnel';
+export FunnelChart from './chart/FunnelChart';
+export Trapezoid from './shape/Trapezoid';

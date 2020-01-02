@@ -1,20 +1,18 @@
 /**
  * @fileOverview Brush
  */
-import React, { Component, Children } from 'react';
+import React, { PureComponent, Children } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { scalePoint } from 'd3-scale';
 import _ from 'lodash';
 import { getValueByDataKey } from '../util/ChartUtils';
-import pureRender from '../util/PureRender';
 import Layer from '../container/Layer';
 import Text from '../component/Text';
 import { isNumber } from '../util/DataUtils';
 import { generatePrefixStyle } from '../util/CssPrefixUtils';
 
-@pureRender
-class Brush extends Component {
+class Brush extends PureComponent {
 
   static displayName = 'Brush';
 
@@ -46,6 +44,8 @@ class Brush extends Component {
 
     onChange: PropTypes.func,
     updateId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    leaveTimeOut: PropTypes.number,
+    alwaysShowText: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -55,6 +55,8 @@ class Brush extends Component {
     fill: '#fff',
     stroke: '#666',
     padding: { top: 1, right: 1, bottom: 1, left: 1 },
+    leaveTimeOut: 1000,
+    alwaysShowText: false
   };
 
   constructor(props) {
@@ -68,6 +70,7 @@ class Brush extends Component {
     this.state = props.data && props.data.length ? this.updateScale(props) : {};
   }
 
+  // eslint-disable-next-line camelcase
   componentWillReceiveProps(nextProps) {
     const { data, width, x, travellerWidth, updateId } = this.props;
 
@@ -168,7 +171,7 @@ class Brush extends Component {
 
   handleLeaveWrapper = () => {
     if (this.state.isTravellerMoving || this.state.isSlideMoving) {
-      this.leaveTimer = setTimeout(this.handleDragEnd, 1000);
+      this.leaveTimer = setTimeout(this.handleDragEnd, this.props.leaveTimeOut);
     }
   };
 
@@ -255,12 +258,12 @@ class Brush extends Component {
     const { startIndex, endIndex } = newIndex;
     const isFullGap = () => {
       const lastIndex = data.length - 1;
-      if ((movingTravellerId === 'startX'
-        && (endX > startX ? startIndex % gap === 0 : endIndex % gap === 0))
-        || (endX < startX && endIndex === lastIndex)
-      || (movingTravellerId === 'endX'
-        && (endX > startX ? endIndex % gap === 0 : startIndex % gap === 0)
-        || (endX > startX && endIndex === lastIndex))) {
+      if ((movingTravellerId === 'startX' &&
+        (endX > startX ? startIndex % gap === 0 : endIndex % gap === 0)) ||
+        (endX < startX && endIndex === lastIndex) ||
+      (movingTravellerId === 'endX' &&
+        (endX > startX ? endIndex % gap === 0 : startIndex % gap === 0) ||
+        (endX > startX && endIndex === lastIndex))) {
         return true;
       }
       return false;
@@ -425,7 +428,7 @@ class Brush extends Component {
   }
 
   render() {
-    const { data, className, children, x, y, width, height } = this.props;
+    const { data, className, children, x, y, width, height, alwaysShowText } = this.props;
     const { startX, endX, isTextActive, isSlideMoving, isTravellerMoving } = this.state;
 
     if (!data || !data.length || !isNumber(x) || !isNumber(y) || !isNumber(width) ||
@@ -450,7 +453,8 @@ class Brush extends Component {
         {this.renderSlide(startX, endX)}
         {this.renderTraveller(startX, 'startX')}
         {this.renderTraveller(endX, 'endX')}
-        {(isTextActive || isSlideMoving || isTravellerMoving) && this.renderText()}
+        {(isTextActive || isSlideMoving || isTravellerMoving || alwaysShowText) &&
+          this.renderText()}
       </Layer>
     );
   }

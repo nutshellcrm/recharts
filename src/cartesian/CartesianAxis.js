@@ -5,7 +5,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import classNames from 'classnames';
-import { shallowEqual } from '../util/PureRender';
+import { shallowEqual } from '../util/ShallowEqual';
 import { getStringSize } from '../util/DOMUtils';
 import Layer from '../container/Layer';
 import Text from '../component/Text';
@@ -90,7 +90,7 @@ class CartesianAxis extends Component {
       return CartesianAxis.getTicksStart({
         ticks, tickFormatter, viewBox, orientation, minTickGap, unit,
       }, true);
-    } else if (interval === 'preserveStart') {
+    } if (interval === 'preserveStart') {
       return CartesianAxis.getTicksStart({
         ticks, tickFormatter, viewBox, orientation, minTickGap, unit,
       });
@@ -111,7 +111,8 @@ class CartesianAxis extends Component {
     const { x, y, width, height } = viewBox;
     const sizeKey = (orientation === 'top' || orientation === 'bottom') ? 'width' : 'height';
     const result = (ticks || []).slice();
-    const unitSize = unit ? getStringSize(unit)[sizeKey] : 0;
+    // we need add the width of 'unit' only when sizeKey === 'width'
+    const unitSize = unit && sizeKey === 'width' ? getStringSize(unit)[sizeKey] : 0;
     const len = result.length;
     const sign = len >= 2 ? mathSign(result[1].coordinate - result[0].coordinate) : 1;
 
@@ -176,7 +177,8 @@ class CartesianAxis extends Component {
   static getTicksEnd({ ticks, tickFormatter, viewBox, orientation, minTickGap, unit }) {
     const { x, y, width, height } = viewBox;
     const sizeKey = (orientation === 'top' || orientation === 'bottom') ? 'width' : 'height';
-    const unitSize = unit ? getStringSize(unit)[sizeKey] : 0;
+    // we need add the width of 'unit' only when sizeKey === 'width'
+    const unitSize = unit && sizeKey === 'width' ? getStringSize(unit)[sizeKey] : 0;
     const result = (ticks || []).slice();
     const len = result.length;
     const sign = len >= 2 ? mathSign(result[1].coordinate - result[0].coordinate) : 1;
@@ -396,7 +398,7 @@ class CartesianAxis extends Component {
       return (
         <Layer
           className="recharts-cartesian-axis-tick"
-          key={`tick-${i}`}
+          key={`tick-${i}`} // eslint-disable-line react/no-array-index-key
           {...filterEventsOfChild(this.props, entry, i)}
         >
           {tickLine && (

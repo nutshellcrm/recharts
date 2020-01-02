@@ -2,10 +2,9 @@
  * @fileOverview Default Tooltip Content
  */
 import _ from 'lodash';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import pureRender from '../util/PureRender';
 import { isNumOrStr } from '../util/DataUtils';
 
 const defaultFormatter = value => (
@@ -14,8 +13,7 @@ const defaultFormatter = value => (
     value
 );
 
-@pureRender
-class DefaultTooltipContent extends Component {
+class DefaultTooltipContent extends PureComponent {
 
   static displayName = 'DefaultTooltipContent';
 
@@ -24,6 +22,7 @@ class DefaultTooltipContent extends Component {
     wrapperClassName: PropTypes.string,
     labelClassName: PropTypes.string,
     formatter: PropTypes.func,
+    contentStyle: PropTypes.object,
     itemStyle: PropTypes.object,
     labelStyle: PropTypes.object,
     labelFormatter: PropTypes.func,
@@ -38,6 +37,7 @@ class DefaultTooltipContent extends Component {
 
   static defaultProps = {
     separator: ' : ',
+    contentStyle: {},
     itemStyle: {},
     labelStyle: {},
   };
@@ -48,8 +48,12 @@ class DefaultTooltipContent extends Component {
     if (payload && payload.length) {
       const listStyle = { padding: 0, margin: 0 };
 
-      const items = payload.sort(itemSorter)
+      const items = (itemSorter ? _.sortBy(payload, itemSorter) : payload)
         .map((entry, i) => {
+          if (entry.type === 'none') {
+            return null;
+          }
+
           const finalItemStyle = {
             display: 'block',
             paddingTop: 4,
@@ -57,20 +61,22 @@ class DefaultTooltipContent extends Component {
             color: entry.color || '#000',
             ...itemStyle,
           };
-          const hasName = isNumOrStr(entry.name);
           const finalFormatter = entry.formatter || formatter || defaultFormatter;
-
+          let { name, value } = entry;
+          if (finalFormatter) {
+            const formatted = finalFormatter(value, name, entry, i);
+            if (Array.isArray(formatted)) {
+              [value, name] = formatted;
+            } else {
+              value = formatted;
+            }
+          }
           return (
+            // eslint-disable-next-line react/no-array-index-key
             <li className="recharts-tooltip-item" key={`tooltip-item-${i}`} style={finalItemStyle}>
-              {hasName ? <span className="recharts-tooltip-item-name">{entry.name}</span> : null}
-              {
-                hasName ?
-                  <span className="recharts-tooltip-item-separator">{separator}</span> :
-                  null
-              }
-              <span className="recharts-tooltip-item-value">
-                {finalFormatter ? finalFormatter(entry.value, entry.name, entry, i) : entry.value}
-              </span>
+              {isNumOrStr(name) ? <span className="recharts-tooltip-item-name">{name}</span> : null}
+              {isNumOrStr(name) ? <span className="recharts-tooltip-item-separator">{separator}</span> : null}
+              <span className="recharts-tooltip-item-value">{value}</span>
               <span className="recharts-tooltip-item-unit">{entry.unit || ''}</span>
             </li>
           );
@@ -85,6 +91,7 @@ class DefaultTooltipContent extends Component {
   render() {
     const {
       wrapperClassName,
+      contentStyle,
       labelClassName,
       labelStyle,
       label,
@@ -96,6 +103,7 @@ class DefaultTooltipContent extends Component {
       backgroundColor: '#fff',
       border: '1px solid #ccc',
       whiteSpace: 'nowrap',
+      ...contentStyle,
     };
     const finalLabelStyle = {
       margin: 0,

@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { PieChart, Pie, Legend, Cell, Tooltip, ResponsiveContainer, Sector,
   Label, LabelList } from 'recharts';
-import { scaleOrdinal, schemeCategory10 } from 'd3-scale';
+import { scaleOrdinal } from 'd3-scale';
+import { schemeCategory10 } from 'd3-scale-chromatic';
 import { changeNumberOfData } from './utils';
 
 const colors = scaleOrdinal(schemeCategory10).range();
@@ -153,7 +154,7 @@ export default class Demo extends Component {
         <div className="pie-chart-wrapper">
           <button onClick={this.handleChangeAnimation}>change animation</button>
           <PieChart width={800} height={400}>
-            <Legend />
+            <Legend paylodUniqBy />
             <Pie
               data={data01}
               dataKey="value"

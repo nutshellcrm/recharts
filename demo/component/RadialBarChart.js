@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import { RadialBarChart, RadialBar, Cell, Legend, Tooltip, ResponsiveContainer,
   LabelList, PolarAngleAxis } from 'recharts';
 import { changeNumberOfData } from './utils';
-import { scaleOrdinal, schemeCategory10 } from 'd3-scale';
+import { scaleOrdinal } from 'd3-scale';
+import { schemeCategory10 } from 'd3-scale-chromatic';
 
 const colors = scaleOrdinal(schemeCategory10).range();
 
@@ -13,7 +14,7 @@ const data = [
   { name: '35-39', uv: 59, amt: 8.22, pv: 2800, fill: '#82ca9d' },
   { name: '40-49', uv: 48, amt: 8.63, pv: 1908, fill: '#a4de6c' },
   { name: '50+', uv: 62, amt: 2.63, pv: -2800, fill: '#d0ed57' },
-  { name: 'unknow', uv: 38, amt: 6.67, pv: 4800, fill: '#ffc658' },
+  { name: 'unknown', uv: 38, amt: 6.67, pv: 4800, fill: '#ffc658' },
 ];
 
 const initialState = { data };

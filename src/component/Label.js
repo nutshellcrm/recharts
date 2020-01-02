@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import _ from 'lodash';
 import classNames from 'classnames';
 import Text from './Text';
-import { PRESENTATION_ATTRIBUTES, getPresentationAttributes, findAllByType } from '../util/ReactUtils';
+import { PRESENTATION_ATTRIBUTES, getPresentationAttributes, findAllByType, filterEventAttributes } from '../util/ReactUtils';
 import { isNumOrStr, isNumber, isPercent, getPercentValue, uniqueId,
   mathSign } from '../util/DataUtils';
 import { polarToCartesian } from '../util/PolarUtils';
@@ -315,6 +315,7 @@ function Label(props) {
 
   const isPolarLabel = isPolar(viewBox);
   const attrs = getPresentationAttributes(props);
+  const events = filterEventAttributes(props);
 
   if (isPolarLabel && (position === 'insideStart' ||
     position === 'insideEnd' || position === 'end')) {
@@ -330,6 +331,7 @@ function Label(props) {
       className={classNames('recharts-label', className)}
       {...attrs}
       {...positionAttrs}
+      {...events}
     >
       {label}
     </Text>
@@ -347,7 +349,7 @@ const parseViewBox = (props) => {
   if (isNumber(width) && isNumber(height)) {
     if (isNumber(x) && isNumber(y)) {
       return { x, y, width, height };
-    } else if (isNumber(top) && isNumber(left)) {
+    } if (isNumber(top) && isNumber(left)) {
       return { x: top, y: left, width, height };
     }
   }
@@ -385,7 +387,15 @@ const parseLabel = (label, viewBox) => {
     return <Label key="label-implicit" viewBox={viewBox} value={label} />;
   }
 
-  if (isValidElement(label) || _.isFunction(label)) {
+  if (isValidElement(label)) {
+    if (label.type === Label) {
+      return cloneElement(label, { key: 'label-implicit', viewBox });
+    }
+
+    return <Label key="label-implicit" content={label} viewBox={viewBox} />;
+  }
+
+  if (_.isFunction(label)) {
     return <Label key="label-implicit" content={label} viewBox={viewBox} />;
   }
 
@@ -403,11 +413,10 @@ const renderCallByParent = (parentProps, viewBox, ckeckPropsLabel = true) => {
   const { children } = parentProps;
   const parentViewBox = parseViewBox(parentProps);
 
-  const explicitChilren = findAllByType(children, Label).map((child, index) =>
-    cloneElement(child, {
-      viewBox: viewBox || parentViewBox,
-      key: `label-${index}`,
-    })
+  const explicitChilren = findAllByType(children, Label).map((child, index) => cloneElement(child, {
+    viewBox: viewBox || parentViewBox,
+    key: `label-${index}`,
+  })
   );
 
   if (!ckeckPropsLabel) { return explicitChilren; }

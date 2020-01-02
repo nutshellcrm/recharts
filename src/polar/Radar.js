@@ -1,14 +1,13 @@
 /**
  * @fileOverview Radar
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Animate from 'react-smooth';
 import classNames from 'classnames';
 import _ from 'lodash';
 import { interpolateNumber } from '../util/DataUtils';
-import pureRender from '../util/PureRender';
-import { PRESENTATION_ATTRIBUTES, LEGEND_TYPES, filterEventAttributes,
+import { PRESENTATION_ATTRIBUTES, LEGEND_TYPES, TOOLTIP_TYPES, filterEventAttributes,
   getPresentationAttributes, isSsr } from '../util/ReactUtils';
 import { polarToCartesian } from '../util/PolarUtils';
 import { getValueByDataKey } from '../util/ChartUtils';
@@ -17,8 +16,7 @@ import Dot from '../shape/Dot';
 import Layer from '../container/Layer';
 import LabelList from '../component/LabelList';
 
-@pureRender
-class Radar extends Component {
+class Radar extends PureComponent {
 
   static displayName = 'Radar';
 
@@ -51,8 +49,11 @@ class Radar extends Component {
       PropTypes.element, PropTypes.func, PropTypes.object, PropTypes.bool,
     ]),
     legendType: PropTypes.oneOf(LEGEND_TYPES),
+    tooltipType: PropTypes.oneOf(TOOLTIP_TYPES),
     hide: PropTypes.bool,
 
+    onAnimationStart: PropTypes.func,
+    onAnimationEnd: PropTypes.func,
     onMouseEnter: PropTypes.func,
     onMouseLeave: PropTypes.func,
     onClick: PropTypes.func,
@@ -95,6 +96,7 @@ class Radar extends Component {
 
   state = { isAnimationFinished: false };
 
+  // eslint-disable-next-line camelcase
   componentWillReceiveProps(nextProps) {
     const { animationId, points } = this.props;
 
@@ -108,11 +110,22 @@ class Radar extends Component {
   };
 
   handleAnimationEnd = () => {
+    const { onAnimationEnd } = this.props;
     this.setState({ isAnimationFinished: true });
+
+    if (_.isFunction(onAnimationEnd)) {
+      onAnimationEnd();
+    }
   };
 
   handleAnimationStart = () => {
+    const { onAnimationStart } = this.props;
+
     this.setState({ isAnimationFinished: false });
+
+    if (_.isFunction(onAnimationStart)) {
+      onAnimationStart();
+    }
   };
 
   handleMouseEnter = (e) => {
@@ -160,7 +173,7 @@ class Radar extends Component {
         cx: entry.x,
         cy: entry.y,
         index: i,
-        playload: entry,
+        payload: entry,
       };
 
       return this.constructor.renderDotItem(dot, dotProps);
@@ -216,8 +229,9 @@ class Radar extends Component {
       >
         {
           ({ t }) => {
+            const prevPointsDiffFactor = prevPoints && prevPoints.length / points.length;
             const stepData = points.map((entry, index) => {
-              const prev = prevPoints && prevPoints[index];
+              const prev = prevPoints && prevPoints[Math.floor(index * prevPointsDiffFactor)];
 
               if (prev) {
                 const interpolatorX = interpolateNumber(prev.x, entry.x);

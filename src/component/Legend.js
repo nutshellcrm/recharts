@@ -1,19 +1,31 @@
 /**
  * @fileOverview Legend
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import pureRender from '../util/PureRender';
 import DefaultLegendContent from './DefaultLegendContent';
 import { isNumber } from '../util/DataUtils';
 import { LEGEND_TYPES } from '../util/ReactUtils';
 
 
+const defaultUniqBy = entry => entry.value;
+const getUniqPaylod = (option, payload) => {
+  if (option === true) {
+    return _.uniqBy(payload, defaultUniqBy);
+  }
+
+  if (_.isFunction(option)) {
+    return _.uniqBy(payload, option);
+  }
+
+  return payload;
+};
+
 const renderContent = (content, props) => {
   if (React.isValidElement(content)) {
     return React.cloneElement(content, props);
-  } else if (_.isFunction(content)) {
+  } if (_.isFunction(content)) {
     return content(props);
   }
 
@@ -23,8 +35,7 @@ const renderContent = (content, props) => {
 const EPS = 1;
 const ICON_TYPES = LEGEND_TYPES.filter(type => type !== 'none');
 
-@pureRender
-class Legend extends Component {
+class Legend extends PureComponent {
   static displayName = 'Legend';
 
   static propTypes = {
@@ -50,6 +61,7 @@ class Legend extends Component {
       id: PropTypes.any,
       type: PropTypes.oneOf(LEGEND_TYPES),
     })),
+    paylodUniqBy: PropTypes.oneOfType([PropTypes.func, PropTypes.bool]),
     formatter: PropTypes.func,
     onMouseEnter: PropTypes.func,
     onMouseLeave: PropTypes.func,
@@ -71,7 +83,7 @@ class Legend extends Component {
       return {
         height: item.props.height,
       };
-    } else if (layout === 'horizontal') {
+    } if (layout === 'horizontal') {
       return {
         width: item.props.width || chartWidth,
       };
@@ -164,7 +176,7 @@ class Legend extends Component {
   }
 
   render() {
-    const { content, width, height, wrapperStyle } = this.props;
+    const { content, width, height, wrapperStyle, paylodUniqBy, payload } = this.props;
     const outerStyle = {
       position: 'absolute',
       width: width || 'auto',
@@ -179,7 +191,7 @@ class Legend extends Component {
         style={outerStyle}
         ref={(node) => { this.wrapperNode = node; }}
       >
-        {renderContent(content, this.props)}
+        {renderContent(content, { ...this.props, payload: getUniqPaylod(paylodUniqBy, payload) })}
       </div>
     );
   }

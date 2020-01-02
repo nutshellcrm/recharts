@@ -1,7 +1,7 @@
 /**
  * @file TreemapChart
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import _ from 'lodash';
@@ -9,7 +9,7 @@ import Surface from '../container/Surface';
 import Layer from '../container/Layer';
 import Tooltip from '../component/Tooltip';
 import Rectangle from '../shape/Rectangle';
-import pureRender, { shallowEqual } from '../util/PureRender';
+import { shallowEqual } from '../util/ShallowEqual';
 import { PRESENTATION_ATTRIBUTES, getPresentationAttributes, EVENT_ATTRIBUTES,
   filterSvgElements, validateWidthHeight, findChildByType } from '../util/ReactUtils';
 import { getValueByDataKey } from '../util/ChartUtils';
@@ -310,8 +310,7 @@ const getPayloadOfTooltip = (el, type, nameKey) => {
   return [];
 };
 
-@pureRender
-class Sankey extends Component {
+class Sankey extends PureComponent {
   static displayName = 'Sankey';
 
   static propTypes = {
@@ -369,6 +368,7 @@ class Sankey extends Component {
     this.state = this.constructor.createDefaultState(props);
   }
 
+  // eslint-disable-next-line camelcase
   componentWillReceiveProps(nextProps) {
     const { data, width, height, margin, iterations, nodeWidth, nodePadding, nameKey } = this.props;
     if (nextProps.data !== data || nextProps.width !== width ||
@@ -378,6 +378,7 @@ class Sankey extends Component {
       this.setState(this.constructor.createDefaultState(nextProps));
     }
   }
+
   /**
    * Returns default, reset state for the sankey chart.
    * @param  {Object} props The latest props
@@ -438,10 +439,15 @@ class Sankey extends Component {
     }
   }
 
+  handleClick(el, type, e) {
+    const { onClick } = this.props;
+    if (onClick) onClick(el, type, e);
+  }
+
   static renderLinkItem(option, props) {
     if (React.isValidElement(option)) {
       return React.cloneElement(option, props);
-    } else if (_.isFunction(option)) {
+    } if (_.isFunction(option)) {
       return option(props);
     }
 
@@ -497,9 +503,11 @@ class Sankey extends Component {
             const events = {
               onMouseEnter: this.handleMouseEnter.bind(this, linkProps, 'link'),
               onMouseLeave: this.handleMouseLeave.bind(this, linkProps, 'link'),
+              onClick: this.handleClick.bind(this, linkProps, 'link')
             };
 
             return (
+              // eslint-disable-next-line react/no-array-index-key
               <Layer key={`link${i}`} {...events}>
                 {this.constructor.renderLinkItem(linkContent, linkProps)}
               </Layer>
@@ -513,7 +521,7 @@ class Sankey extends Component {
   static renderNodeItem(option, props) {
     if (React.isValidElement(option)) {
       return React.cloneElement(option, props);
-    } else if (_.isFunction(option)) {
+    } if (_.isFunction(option)) {
       return option(props);
     }
 
@@ -549,9 +557,11 @@ class Sankey extends Component {
             const events = {
               onMouseEnter: this.handleMouseEnter.bind(this, nodeProps, 'node'),
               onMouseLeave: this.handleMouseLeave.bind(this, nodeProps, 'node'),
+              onClick: this.handleClick.bind(this, nodeProps, 'node')
             };
 
             return (
+              // eslint-disable-next-line react/no-array-index-key
               <Layer key={`node${i}`} {...events}>
                 {this.constructor.renderNodeItem(nodeContent, nodeProps)}
               </Layer>

@@ -2,9 +2,62 @@ import React, { Children } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 import { isNumber } from './DataUtils';
-import { shallowEqual } from './PureRender';
+import { shallowEqual } from './ShallowEqual';
 
 export const PRESENTATION_ATTRIBUTES = {
+  'aria-current': PropTypes.string, // state
+  'aria-details': PropTypes.any,
+  'aria-disabled': PropTypes.any, // state
+  'aria-hidden': PropTypes.any, // state
+  'aria-invalid': PropTypes.any, // state
+  'aria-keyshortcuts': PropTypes.any,
+  'aria-label': PropTypes.any,
+  'aria-roledescription': PropTypes.any,
+  // Widget Attributes
+  'aria-autocomplete': PropTypes.any,
+  'aria-checked': PropTypes.any,
+  'aria-expanded': PropTypes.any,
+  'aria-haspopup': PropTypes.any,
+  'aria-level': PropTypes.any,
+  'aria-modal': PropTypes.any,
+  'aria-multiline': PropTypes.any,
+  'aria-multiselectable': PropTypes.any,
+  'aria-orientation': PropTypes.any,
+  'aria-placeholder': PropTypes.any,
+  'aria-pressed': PropTypes.any,
+  'aria-readonly': PropTypes.any,
+  'aria-required': PropTypes.any,
+  'aria-selected': PropTypes.any,
+  'aria-sort': PropTypes.any,
+  'aria-valuemax': PropTypes.any,
+  'aria-valuemin': PropTypes.any,
+  'aria-valuenow': PropTypes.any,
+  'aria-valuetext': PropTypes.any,
+  // Live Region Attributes
+  'aria-atomic': PropTypes.any,
+  'aria-busy': PropTypes.any,
+  'aria-live': PropTypes.any,
+  'aria-relevant': PropTypes.any,
+  // Drag-and-Drop Attributes
+  'aria-dropeffect': PropTypes.any,
+  'aria-grabbed': PropTypes.any,
+  // Relationship Attributes
+  'aria-activedescendant': PropTypes.any,
+  'aria-colcount': PropTypes.any,
+  'aria-colindex': PropTypes.any,
+  'aria-colspan': PropTypes.any,
+  'aria-controls': PropTypes.any,
+  'aria-describedby': PropTypes.any,
+  'aria-errormessage': PropTypes.any,
+  'aria-flowto': PropTypes.any,
+  'aria-labelledby': PropTypes.any,
+  'aria-owns': PropTypes.any,
+  'aria-posinset': PropTypes.any,
+  'aria-rowcount': PropTypes.any,
+  'aria-rowindex': PropTypes.any,
+  'aria-rowspan': PropTypes.any,
+  'aria-setsize': PropTypes.any,
+
   alignmentBaseline: PropTypes.string,
   angle: PropTypes.number,
   baselineShift: PropTypes.string,
@@ -50,6 +103,7 @@ export const PRESENTATION_ATTRIBUTES = {
   kerning: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   letterSpacing: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   lightingColor: PropTypes.string,
+  lineHeight: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   markerEnd: PropTypes.string,
   markerMid: PropTypes.string,
   markerStart: PropTypes.string,
@@ -88,6 +142,9 @@ export const PRESENTATION_ATTRIBUTES = {
     'lr-tb', 'rl-tb', 'tb-rl', 'lr', 'rl', 'tb', 'inherit',
   ]),
   transform: PropTypes.string,
+  role: PropTypes.string,
+  focusable: PropTypes.string,
+  tabIndex: PropTypes.string,
   style: PropTypes.object,
 
   width: PropTypes.number,
@@ -141,16 +198,20 @@ export const LEGEND_TYPES = [
   'diamond', 'star', 'triangle', 'wye', 'none',
 ];
 
+export const TOOLTIP_TYPES = [
+  'none',
+];
+
 /**
  * Get the display name of a component
  * @param  {Object} Comp Specified Component
  * @return {String}      Display name of Component
  */
 export const getDisplayName = (Comp) => {
-  if (!Comp) { return ''; }
   if (typeof Comp === 'string') {
     return Comp;
   }
+  if (!Comp) { return ''; }
   return Comp.displayName || Comp.name || 'Component';
 };
 
@@ -201,8 +262,8 @@ export const withoutType = (children, type) => {
   }
 
   React.Children.forEach(children, (child) => {
-    if (child && child.type && child.type.displayName
-      && types.indexOf(child.type.displayName) !== -1) {
+    if (child && child.type && child.type.displayName &&
+      types.indexOf(child.type.displayName) !== -1) {
       return;
     }
     newChildren.push(child);
@@ -348,14 +409,14 @@ export const filterSvgElements = (children) => {
 export const isSingleChildEqual = (nextChild, prevChild) => {
   if (_.isNil(nextChild) && _.isNil(prevChild)) {
     return true;
-  } else if (!_.isNil(nextChild) && !_.isNil(prevChild)) {
+  } if (!_.isNil(nextChild) && !_.isNil(prevChild)) {
     const { children: nextChildren, ...nextProps } = nextChild.props || {};
     const { children: prevChildren, ...prevProps } = prevChild.props || {};
 
     if (nextChildren && prevChildren) {
       // eslint-disable-next-line no-use-before-define
       return shallowEqual(nextProps, prevProps) && isChildrenEqual(nextChildren, prevChildren);
-    } else if (!nextChildren && !prevChildren) {
+    } if (!nextChildren && !prevChildren) {
       return shallowEqual(nextProps, prevProps);
     }
 

@@ -1,10 +1,9 @@
 /**
  * @fileOverview Axis of radial direction
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
-import pureRender from '../util/PureRender';
 import Layer from '../container/Layer';
 import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, SCALE_TYPES,
   getPresentationAttributes, filterEventsOfChild } from '../util/ReactUtils';
@@ -16,10 +15,10 @@ import { polarToCartesian } from '../util/PolarUtils';
 const RADIAN = Math.PI / 180;
 const eps = 1e-5;
 
-@pureRender
-class PolarAngleAxis extends Component {
+class PolarAngleAxis extends PureComponent {
 
   static displayName = 'PolarAngleAxis';
+
   static axisType = 'angleAxis';
 
   static propTypes = {
@@ -84,6 +83,7 @@ class PolarAngleAxis extends Component {
 
     return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
   }
+
   /**
    * Get the text-anchor of each tick
    * @param  {Object} data Data of ticks
@@ -174,7 +174,7 @@ class PolarAngleAxis extends Component {
       return (
         <Layer
           className="recharts-polar-angle-axis-tick"
-          key={`tick-${i}`}
+          key={`tick-${i}`} // eslint-disable-line react/no-array-index-key
           {...filterEventsOfChild(this.props, entry, i)}
         >
           {tickLine && (

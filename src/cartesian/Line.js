@@ -1,24 +1,30 @@
 /**
  * @fileOverview Line
  */
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import Animate from 'react-smooth';
 import classNames from 'classnames';
 import _ from 'lodash';
-import pureRender from '../util/PureRender';
 import Curve from '../shape/Curve';
 import Dot from '../shape/Dot';
 import Layer from '../container/Layer';
 import LabelList from '../component/LabelList';
 import ErrorBar from './ErrorBar';
 import { uniqueId, interpolateNumber } from '../util/DataUtils';
-import { PRESENTATION_ATTRIBUTES, EVENT_ATTRIBUTES, LEGEND_TYPES, filterEventAttributes,
-  getPresentationAttributes, isSsr, findAllByType } from '../util/ReactUtils';
+import {
+  PRESENTATION_ATTRIBUTES,
+  EVENT_ATTRIBUTES,
+  LEGEND_TYPES,
+  TOOLTIP_TYPES,
+  filterEventAttributes,
+  getPresentationAttributes,
+  isSsr,
+  findAllByType
+} from '../util/ReactUtils';
 import { getCateCoordinateOfLine, getValueByDataKey } from '../util/ChartUtils';
 
-@pureRender
-class Line extends Component {
+class Line extends PureComponent {
 
   static displayName = 'Line';
 
@@ -37,6 +43,7 @@ class Line extends Component {
     yAxis: PropTypes.object,
     xAxis: PropTypes.object,
     legendType: PropTypes.oneOf(LEGEND_TYPES),
+    tooltipType: PropTypes.oneOf(TOOLTIP_TYPES),
     layout: PropTypes.oneOf(['horizontal', 'vertical']),
     connectNulls: PropTypes.bool,
     hide: PropTypes.bool,
@@ -58,10 +65,12 @@ class Line extends Component {
       y: PropTypes.number,
       value: PropTypes.value,
     })),
+
     onAnimationStart: PropTypes.func,
     onAnimationEnd: PropTypes.func,
 
     isAnimationActive: PropTypes.bool,
+    animateNewValues: PropTypes.bool,
     animationBegin: PropTypes.number,
     animationDuration: PropTypes.number,
     animationEasing: PropTypes.oneOf([
@@ -87,6 +96,7 @@ class Line extends Component {
     fill: '#fff',
     points: [],
     isAnimationActive: !isSsr(),
+    animateNewValues: true,
     animationBegin: 0,
     animationDuration: 1500,
     animationEasing: 'ease',
@@ -145,6 +155,7 @@ class Line extends Component {
     this.setState({ totalLength });
   }
 
+  // eslint-disable-next-line camelcase
   componentWillReceiveProps(nextProps) {
     const { animationId, points } = this.props;
 
@@ -234,7 +245,7 @@ class Line extends Component {
     }
 
     return errorBarItems.map((item, i) => React.cloneElement(item, {
-      key: i,
+      key: i, // eslint-disable-line react/no-array-index-key
       data: points,
       xAxis,
       yAxis,
@@ -326,9 +337,11 @@ class Line extends Component {
         {
           ({ t }) => {
             if (prevPoints) {
+              const prevPointsDiffFactor = prevPoints.length / points.length;
               const stepData = points.map((entry, index) => {
-                if (prevPoints[index]) {
-                  const prev = prevPoints[index];
+                const prevPointIndex = Math.floor(index * prevPointsDiffFactor);
+                if (prevPoints[prevPointIndex]) {
+                  const prev = prevPoints[prevPointIndex];
                   const interpolatorX = interpolateNumber(prev.x, entry.x);
                   const interpolatorY = interpolateNumber(prev.y, entry.y);
 
@@ -336,9 +349,12 @@ class Line extends Component {
                 }
 
                 // magic number of faking previous x and y location
-                const interpolatorX = interpolateNumber(width * 2, entry.x);
-                const interpolatorY = interpolateNumber(height / 2, entry.y);
-                return { ...entry, x: interpolatorX(t), y: interpolatorY(t) };
+                if (this.animateNewValues) {
+                  const interpolatorX = interpolateNumber(width * 2, entry.x);
+                  const interpolatorY = interpolateNumber(height / 2, entry.y);
+                  return { ...entry, x: interpolatorX(t), y: interpolatorY(t) };
+                }
+                return { ...entry, x: entry.x, y: entry.y };
               });
               return this.renderCurveStatically(stepData, needClip, clipPathId);
             }
